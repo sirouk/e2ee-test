@@ -2,6 +2,8 @@
 
 Small browser-native E2EE test client for Chutes. The UI is TypeScript/Vite; the protocol crypto lives in Rust/WASM.
 
+![Chutes E2EE browser flow](docs/e2ee-flow.svg)
+
 Requires Node 24 and a stable Rust toolchain with `wasm32-unknown-unknown`.
 
 ## Run

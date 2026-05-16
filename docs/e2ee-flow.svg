@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820" role="img" aria-labelledby="title desc">
+  <title id="title">Chutes E2EE browser flow</title>
+  <desc id="desc">A three-lane diagram showing the browser, Chutes API relay, and TEE instance E2EE workflow.</desc>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1c211f" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="panel" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#171c19"/>
+      <stop offset="1" stop-color="#0f1211"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#a4ffc5"/>
+      <stop offset="1" stop-color="#d9ffbd"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M 2 2 L 10 6 L 2 10 Z" fill="#a4ffc5"/>
+    </marker>
+    <style>
+      .bg { fill: #0b0d0c; }
+      .grid { fill: url(#grid); opacity: .65; }
+      .title { fill: #f5f7f3; font-family: Arial, sans-serif; font-size: 42px; font-weight: 700; }
+      .subtitle { fill: #a9b2ac; font-family: Arial, sans-serif; font-size: 18px; }
+      .lane { fill: url(#panel); stroke: #303833; stroke-width: 1.5; rx: 20; }
+      .laneTitle { fill: #f5f7f3; font-family: Arial, sans-serif; font-size: 25px; font-weight: 700; }
+      .laneSub { fill: #8f9993; font-family: Arial, sans-serif; font-size: 15px; }
+      .step { fill: #121614; stroke: #3a443f; stroke-width: 1.2; rx: 14; }
+      .stepText { fill: #e8eee9; font-family: Arial, sans-serif; font-size: 17px; font-weight: 700; }
+      .stepSub { fill: #9ba59f; font-family: Arial, sans-serif; font-size: 14px; }
+      .num { fill: #09100c; font-family: Arial, sans-serif; font-size: 14px; font-weight: 700; }
+      .numCircle { fill: url(#accent); }
+      .arrow { fill: none; stroke: #a4ffc5; stroke-width: 3; marker-end: url(#arrow); }
+      .arrowSoft { fill: none; stroke: #6fdca1; stroke-width: 2.4; stroke-dasharray: 7 8; marker-end: url(#arrow); opacity: .9; }
+      .labelBox { fill: #101412; stroke: #4d5a54; stroke-width: 1; rx: 12; }
+      .label { fill: #d5ded8; font-family: Arial, sans-serif; font-size: 14px; font-weight: 700; }
+      .small { fill: #9aa39e; font-family: Arial, sans-serif; font-size: 13px; }
+      .callout { fill: #101412; stroke: #5a7d69; stroke-width: 1.5; rx: 16; }
+      .calloutTitle { fill: #a4ffc5; font-family: Arial, sans-serif; font-size: 17px; font-weight: 700; }
+      .calloutText { fill: #dbe5df; font-family: Arial, sans-serif; font-size: 14px; }
+      .muted { fill: #77817b; font-family: Arial, sans-serif; font-size: 13px; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1280" height="820"/>
+  <rect class="grid" width="1280" height="820"/>
+
+  <text class="title" x="60" y="74">Chutes E2EE Browser Flow</text>
+  <text class="subtitle" x="60" y="106">The browser handles keys and crypto locally; Chutes routes encrypted bytes to the selected TEE instance.</text>
+
+  <rect class="lane" x="60" y="150" width="340" height="480" rx="20"/>
+  <rect class="lane" x="470" y="150" width="340" height="480" rx="20"/>
+  <rect class="lane" x="880" y="150" width="340" height="480" rx="20"/>
+
+  <text class="laneTitle" x="92" y="198">Browser app</text>
+  <text class="laneSub" x="92" y="222">TypeScript UI + Rust/WASM crypto</text>
+  <text class="laneTitle" x="502" y="198">Chutes API</text>
+  <text class="laneSub" x="502" y="222">Discovery, nonce check, encrypted relay</text>
+  <text class="laneTitle" x="912" y="198">TEE instance</text>
+  <text class="laneSub" x="912" y="222">Plaintext exists only inside the enclave path</text>
+
+  <rect class="step" x="92" y="260" width="276" height="72" rx="14"/>
+  <circle class="numCircle" cx="120" cy="296" r="15"/>
+  <text class="num" x="116" y="301">1</text>
+  <text class="stepText" x="146" y="289">Load TEE models</text>
+  <text class="stepSub" x="146" y="313">GET llm.chutes.ai/v1/models</text>
+
+  <rect class="step" x="92" y="366" width="276" height="82" rx="14"/>
+  <circle class="numCircle" cx="120" cy="407" r="15"/>
+  <text class="num" x="116" y="412">2</text>
+  <text class="stepText" x="146" y="398">Get instance + nonce</text>
+  <text class="stepSub" x="146" y="422">e2e_pubkey, instance_id, nonce</text>
+
+  <rect class="step" x="92" y="482" width="276" height="104" rx="14"/>
+  <circle class="numCircle" cx="120" cy="524" r="15"/>
+  <text class="num" x="116" y="529">3</text>
+  <text class="stepText" x="146" y="512">WASM encrypts request</text>
+  <text class="stepSub" x="146" y="536">ML-KEM + HKDF + gzip</text>
+  <text class="stepSub" x="146" y="558">ChaCha20-Poly1305 blob</text>
+
+  <rect class="step" x="502" y="278" width="276" height="90" rx="14"/>
+  <circle class="numCircle" cx="530" cy="323" r="15"/>
+  <text class="num" x="526" y="328">4</text>
+  <text class="stepText" x="556" y="314">POST /e2e/invoke</text>
+  <text class="stepSub" x="556" y="338">encrypted body + E2EE headers</text>
+
+  <rect class="step" x="502" y="408" width="276" height="82" rx="14"/>
+  <circle class="numCircle" cx="530" cy="449" r="15"/>
+  <text class="num" x="526" y="454">5</text>
+  <text class="stepText" x="556" y="440">Validate nonce</text>
+  <text class="stepSub" x="556" y="464">single-use instance routing</text>
+
+  <rect class="step" x="502" y="530" width="276" height="74" rx="14"/>
+  <circle class="numCircle" cx="530" cy="567" r="15"/>
+  <text class="num" x="526" y="572">6</text>
+  <text class="stepText" x="556" y="560">Relay encrypted bytes</text>
+  <text class="stepSub" x="556" y="584">API never sees prompt text</text>
+
+  <rect class="step" x="912" y="282" width="276" height="96" rx="14"/>
+  <circle class="numCircle" cx="940" cy="330" r="15"/>
+  <text class="num" x="936" y="335">7</text>
+  <text class="stepText" x="966" y="318">Decrypt inside TEE</text>
+  <text class="stepSub" x="966" y="342">recover prompt + response_pk</text>
+  <text class="stepSub" x="966" y="364">run selected model</text>
+
+  <rect class="step" x="912" y="444" width="276" height="104" rx="14"/>
+  <circle class="numCircle" cx="940" cy="496" r="15"/>
+  <text class="num" x="936" y="501">8</text>
+  <text class="stepText" x="966" y="484">Encrypt response</text>
+  <text class="stepSub" x="966" y="508">stream: e2e_init + e2e chunks</text>
+  <text class="stepSub" x="966" y="530">non-stream: encrypted blob</text>
+
+  <path class="arrowSoft" d="M 368 296 C 425 296 435 296 492 296"/>
+  <rect class="labelBox" x="390" y="250" width="160" height="38" rx="12"/>
+  <text class="label" x="408" y="274">model list</text>
+
+  <path class="arrowSoft" d="M 368 407 C 425 407 435 407 492 407"/>
+  <rect class="labelBox" x="388" y="374" width="184" height="38" rx="12"/>
+  <text class="label" x="405" y="398">instance nonce</text>
+
+  <path class="arrow" d="M 368 534 C 430 534 430 323 492 323"/>
+  <rect class="labelBox" x="390" y="475" width="176" height="50" rx="12"/>
+  <text class="label" x="407" y="497">encrypted request</text>
+  <text class="small" x="407" y="516">blob + headers</text>
+
+  <path class="arrow" d="M 778 567 C 840 567 840 330 902 330"/>
+  <rect class="labelBox" x="790" y="508" width="172" height="50" rx="12"/>
+  <text class="label" x="807" y="530">encrypted relay</text>
+  <text class="small" x="807" y="549">no plaintext at API</text>
+
+  <path class="arrow" d="M 912 496 C 826 662 454 662 330 586"/>
+  <rect class="labelBox" x="512" y="614" width="258" height="50" rx="12"/>
+  <text class="label" x="532" y="636">encrypted response stream</text>
+  <text class="small" x="532" y="655">browser decrypts tokens locally</text>
+
+  <rect class="callout" x="60" y="678" width="548" height="86" rx="16"/>
+  <text class="calloutTitle" x="88" y="714">Never sent by the browser</text>
+  <text class="calloutText" x="88" y="742">response_sk stays in WASM memory and is zeroed after the response.</text>
+
+  <rect class="callout" x="672" y="678" width="548" height="86" rx="16"/>
+  <text class="calloutTitle" x="700" y="714">What Chutes receives</text>
+  <text class="calloutText" x="700" y="742">API key for authorization, routing headers, and encrypted E2EE bytes.</text>
+
+  <text class="muted" x="60" y="798">Request blob: ML-KEM ciphertext + nonce + ChaCha20-Poly1305 ciphertext/tag. Stream response: e2e_init establishes stream key, e2e chunks carry encrypted SSE lines.</text>
+</svg>
