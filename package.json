@@ -6,7 +6,10 @@
   "scripts": {
     "wasm": "wasm-pack build wasm --target web --out-dir ../src/wasm --no-pack",
     "dev": "vite --host 0.0.0.0",
-    "build": "npm run wasm && tsc && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "npm run wasm && npm run typecheck && npm test",
+    "build": "npm run wasm && npm run typecheck && vite build",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
@@ -14,6 +17,7 @@
   },
   "devDependencies": {
     "typescript": "^5.9.3",
+    "vitest": "^4.1.6",
     "wasm-pack": "^0.15.0"
   }
 }

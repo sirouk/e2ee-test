@@ -1,21 +1,20 @@
 import "./styles.css";
 import { initE2EE, listModels, sendChat, type ChutesModel } from "./e2eeClient.ts";
 
-const API_KEY_KEY = "chutes-e2ee-test-api-key";
-
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-  <form class="shell">
+  <form id="appForm" class="shell">
     <header>
       <div>
-        <h1>Chutes E2EE Test</h1>
-        <p>Browser-native TypeScript + WASM client.</p>
+        <img class="logo" src="/brand/chutes-flat-light.svg" alt="Chutes" />
+        <h1>E2EE Test</h1>
+        <p>Confidential inference path.</p>
       </div>
       <span id="status">loading wasm</span>
     </header>
 
     <label>
       API key
-      <input id="apiKey" type="password" autocomplete="off" placeholder="cpk_..." />
+      <input id="apiKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="cpk_..." />
     </label>
 
     <div class="row">
@@ -32,7 +31,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     </label>
 
     <div class="actions">
-      <label class="check"><input id="stream" type="checkbox" /> stream</label>
+      <label class="check"><input id="stream" type="checkbox" checked /> stream</label>
       <button id="send" type="button">Send E2EE</button>
     </div>
 
@@ -40,15 +39,17 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   </form>
 `;
 
+const formEl = el<HTMLFormElement>("appForm");
 const statusEl = el<HTMLSpanElement>("status");
 const apiKeyEl = el<HTMLInputElement>("apiKey");
 const modelEl = el<HTMLSelectElement>("model");
 const promptEl = el<HTMLTextAreaElement>("prompt");
 const outputEl = el<HTMLPreElement>("output");
 const streamEl = el<HTMLInputElement>("stream");
+const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>("button"));
+let loadedModels: ChutesModel[] = [];
 
-apiKeyEl.value = sessionStorage.getItem(API_KEY_KEY) ?? "";
-apiKeyEl.addEventListener("input", () => sessionStorage.setItem(API_KEY_KEY, apiKeyEl.value));
+formEl.addEventListener("submit", (event) => event.preventDefault());
 
 initE2EE()
   .then(() => setStatus("wasm ready"))
@@ -60,6 +61,7 @@ el<HTMLButtonElement>("send").addEventListener("click", () => run(send));
 async function loadModels() {
   setStatus("loading models");
   const models = await listModels(apiKeyEl.value.trim());
+  loadedModels = models;
   renderModels(models);
   setStatus(`${models.length} models`);
 }
@@ -70,12 +72,11 @@ async function send() {
   setStatus("encrypting");
   const text = await sendChat({
     apiKey: apiKeyEl.value.trim(),
-    model: modelEl.value,
+    model: selectedModel(),
     prompt: promptEl.value,
     stream: streamEl.checked,
-    onEvent: (line) => {
-      if (line === "[DONE]") setStatus("done");
-      else outputEl.textContent += line.startsWith("data: ") ? "" : `${line}\n`;
+    onToken: (text) => {
+      outputEl.textContent += text;
     },
   });
   outputEl.textContent = text || outputEl.textContent;
@@ -87,20 +88,23 @@ function renderModels(models: ChutesModel[]) {
   for (const model of models) {
     const option = document.createElement("option");
     option.value = model.id;
-    option.textContent = `${model.id}${model.confidential_compute ? "  TEE" : ""}`;
+    option.textContent = model.id;
     modelEl.append(option);
   }
-  const tee = models.find((m) => m.confidential_compute);
+  const tee = models.find((m) => m.confidential_compute) ?? models[0];
   if (tee) modelEl.value = tee.id;
 }
 
 async function run(task: () => Promise<void>) {
   try {
+    setBusy(true);
     await task();
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     outputEl.textContent = message;
     setStatus("error");
+  } finally {
+    setBusy(false);
   }
 }
 
@@ -108,8 +112,18 @@ function requireKey() {
   if (!apiKeyEl.value.trim()) throw new Error("Paste a Chutes API key first.");
 }
 
+function selectedModel() {
+  const model = loadedModels.find((item) => item.id === modelEl.value);
+  if (!model) throw new Error("Load models first.");
+  return model;
+}
+
 function setStatus(value: string) {
   statusEl.textContent = value;
+}
+
+function setBusy(value: boolean) {
+  for (const button of buttons) button.disabled = value;
 }
 
 function el<T extends HTMLElement>(id: string): T {

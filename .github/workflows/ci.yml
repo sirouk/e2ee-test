@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: rustup target add wasm32-unknown-unknown
+
+      - run: cargo fmt --manifest-path wasm/Cargo.toml --check
+
+      - run: cargo clippy --manifest-path wasm/Cargo.toml --all-targets -- -D warnings
+
+      - run: cargo test --manifest-path wasm/Cargo.toml
+
+      - run: npm run check
+
+      - run: npm run build
+
+      - run: npm audit --audit-level=high
