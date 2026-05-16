@@ -161,31 +161,38 @@ async function readStream(
   let streamKey: Uint8Array | undefined;
   let output = "";
 
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-
+  try {
     for (;;) {
-      const lineEnd = buffer.indexOf("\n");
-      if (lineEnd === -1) break;
-      const result = processSseLine(buffer.slice(0, lineEnd).replace(/\r$/, ""), responseSk, streamKey);
-      buffer = buffer.slice(lineEnd + 1);
-      if (result.kind === "key") streamKey = result.key;
-      if (result.kind === "done") return output.trim();
-      if (result.kind === "line") {
-        const token = collectText(result.line);
-        output += token;
-        if (token) onToken?.(token);
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      for (;;) {
+        const lineEnd = buffer.indexOf("\n");
+        if (lineEnd === -1) break;
+        const result = processSseLine(buffer.slice(0, lineEnd).replace(/\r$/, ""), responseSk, streamKey);
+        buffer = buffer.slice(lineEnd + 1);
+        if (result.kind === "key") {
+          streamKey?.fill(0);
+          streamKey = result.key;
+        }
+        if (result.kind === "done") return output.trim();
+        if (result.kind === "line") {
+          const token = collectText(result.line);
+          output += token;
+          if (token) onToken?.(token);
+        }
       }
     }
-  }
 
-  if (buffer.trim()) {
-    const result = processSseLine(buffer.trim(), responseSk, streamKey);
-    if (result.kind === "line") output += collectText(result.line);
+    if (buffer.trim()) {
+      const result = processSseLine(buffer.trim(), responseSk, streamKey);
+      if (result.kind === "line") output += collectText(result.line);
+    }
+    return output.trim();
+  } finally {
+    streamKey?.fill(0);
   }
-  return output.trim();
 }
 
 function processSseLine(
