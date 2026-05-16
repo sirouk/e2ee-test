@@ -84,6 +84,10 @@ header,
   gap: 12px;
 }
 
+.actions {
+  justify-content: space-between;
+}
+
 header {
   align-items: start;
   justify-content: space-between;
