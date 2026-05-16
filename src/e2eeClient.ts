@@ -104,7 +104,7 @@ export async function sendChat(args: ChatArgs): Promise<string> {
     );
 
     if (!res.ok) throw await responseError("invoke", res);
-    if (args.stream) return readStream(res, responseSk, args.onToken);
+    if (args.stream) return await readStream(res, responseSk, args.onToken);
 
     const decrypted = decrypt_response(new Uint8Array(await res.arrayBuffer()), responseSk);
     return extractChatContent(JSON.parse(decrypted));

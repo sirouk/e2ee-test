@@ -6,8 +6,9 @@ use chacha20poly1305::{
 use flate2::{Compression, read::GzDecoder, write::GzEncoder};
 use getrandom::fill as random_fill;
 use hkdf::Hkdf;
+#[allow(deprecated)]
 use ml_kem::{
-    DecapsulationKey768, EncapsulationKey768, MlKem768, Seed,
+    DecapsulationKey768, EncapsulationKey768, ExpandedKeyEncoding, MlKem768,
     kem::{Decapsulate, Encapsulate, Kem, KeyExport},
 };
 use serde::Serialize;
@@ -19,7 +20,7 @@ use wasm_bindgen::prelude::*;
 type E2Result<T> = Result<T, String>;
 
 const MLKEM_PK_SIZE: usize = 1184;
-const MLKEM_SEED_SIZE: usize = 64;
+const MLKEM_SK_SIZE: usize = 2400;
 const MLKEM_CT_SIZE: usize = 1088;
 const TAG_SIZE: usize = 16;
 const INFO_REQ: &[u8] = b"e2e-req-v1";
@@ -101,10 +102,8 @@ fn build_request(e2e_pubkey_b64: &str, payload_json: &str) -> E2Result<RequestRe
     let (response_sk, response_pk): (DecapsulationKey768, EncapsulationKey768) =
         MlKem768::generate_keypair();
     let response_pk = response_pk.to_bytes().to_vec();
-    let response_sk = response_sk
-        .to_seed()
-        .ok_or_else(|| err("response secret key seed unavailable"))?
-        .to_vec();
+    #[allow(deprecated)]
+    let response_sk = response_sk.to_expanded_bytes().to_vec();
 
     let e2e_pubkey = B64.decode(e2e_pubkey_b64).map_err(|e| err(e.to_string()))?;
     if e2e_pubkey.len() != MLKEM_PK_SIZE {
@@ -156,7 +155,7 @@ fn decrypt_response_core(response_blob: &[u8], response_sk: &[u8]) -> E2Result<S
     if response_blob.len() < MLKEM_CT_SIZE + 12 + TAG_SIZE {
         return Err(err("encrypted response is too short"));
     }
-    if response_sk.len() != MLKEM_SEED_SIZE {
+    if response_sk.len() != MLKEM_SK_SIZE {
         return Err(err("invalid response secret key length"));
     }
 
@@ -164,10 +163,7 @@ fn decrypt_response_core(response_blob: &[u8], response_sk: &[u8]) -> E2Result<S
     let nonce = &response_blob[MLKEM_CT_SIZE..MLKEM_CT_SIZE + 12];
     let ciphertext_and_tag = &response_blob[MLKEM_CT_SIZE + 12..];
 
-    let seed: Seed = response_sk
-        .try_into()
-        .map_err(|_| err("invalid response secret key seed"))?;
-    let sk = DecapsulationKey768::from_seed(seed);
+    let sk = decapsulation_key_from_sk(response_sk)?;
     let ct = mlkem_ct
         .try_into()
         .map_err(|_| err("invalid response ML-KEM ciphertext"))?;
@@ -183,7 +179,7 @@ pub fn decrypt_stream_init(response_sk: &[u8], mlkem_ct_b64: &str) -> Result<Vec
 }
 
 fn decrypt_stream_init_core(response_sk: &[u8], mlkem_ct_b64: &str) -> E2Result<Vec<u8>> {
-    if response_sk.len() != MLKEM_SEED_SIZE {
+    if response_sk.len() != MLKEM_SK_SIZE {
         return Err(err("invalid response secret key length"));
     }
     let mlkem_ct = B64.decode(mlkem_ct_b64).map_err(|e| err(e.to_string()))?;
@@ -191,10 +187,7 @@ fn decrypt_stream_init_core(response_sk: &[u8], mlkem_ct_b64: &str) -> E2Result<
         return Err(err("invalid stream init ciphertext length"));
     }
 
-    let seed: Seed = response_sk
-        .try_into()
-        .map_err(|_| err("invalid response secret key seed"))?;
-    let sk = DecapsulationKey768::from_seed(seed);
+    let sk = decapsulation_key_from_sk(response_sk)?;
     let ct = mlkem_ct
         .as_slice()
         .try_into()
@@ -222,6 +215,14 @@ fn decrypt_stream_chunk_core(enc_chunk_b64: &str, stream_key: &[u8]) -> E2Result
     String::from_utf8(plaintext).map_err(|e| err(e.to_string()))
 }
 
+#[allow(deprecated)]
+fn decapsulation_key_from_sk(response_sk: &[u8]) -> E2Result<DecapsulationKey768> {
+    let sk = response_sk
+        .try_into()
+        .map_err(|_| err("invalid response secret key"))?;
+    DecapsulationKey768::from_expanded_bytes(&sk).map_err(|_| err("invalid response secret key"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -237,7 +238,7 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(request.response_sk.len(), MLKEM_SEED_SIZE);
+        assert_eq!(request.response_sk.len(), MLKEM_SK_SIZE);
         assert!(request.blob.len() > MLKEM_CT_SIZE + 12 + TAG_SIZE);
 
         let payload = decrypt_request_for_test(&server_sk, &request.blob);
