@@ -26,15 +26,23 @@ For deploy or browser-only testing, set `E2EE_PRECOMPILED_WASM=1` to use the che
 E2EE_PRECOMPILED_WASM=1 npm run build
 ```
 
-This flag only controls whether the build re-compiles Rust or ships the precompiled WASM. It is not a browser secrecy boundary; the browser still owns the runtime and can inspect its own inputs and outputs.
+The helper script is also available directly:
+
+```bash
+npm run wasm:precompiled
+npm run build:precompiled
+```
+
+CI tests precompiled mode from a clean checkout before rebuilding from Rust source. The Rust toolchain is pinned in `rust-toolchain.toml`; source builds can still produce different WASM bytes across host triples, so deployment uses the committed precompiled artifact. This flag only controls whether the build re-compiles Rust or ships the precompiled WASM. It is not a browser secrecy boundary; the browser still owns the runtime and can inspect its own inputs and outputs.
 
 ## Check
 
 ```bash
 cargo test --manifest-path wasm/Cargo.toml
 cargo clippy --manifest-path wasm/Cargo.toml --all-targets -- -D warnings
-npm run check
+npm run check:precompiled
 npm run build:precompiled
+npm run check
 npm run build
 npm audit --audit-level=high
 ```

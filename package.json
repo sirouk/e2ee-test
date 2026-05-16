@@ -11,10 +11,12 @@
     "test": "vitest run",
     "test:unit": "vitest run src/e2eeClient.test.ts",
     "test:live": "vitest run src/e2eeLive.test.ts",
+    "wasm:precompiled": "E2EE_PRECOMPILED_WASM=1 node scripts/wasm.mjs",
     "check": "npm run wasm && npm run typecheck && npm test",
+    "check:precompiled": "npm run wasm:precompiled && npm run typecheck && npm test",
     "build": "npm run wasm && npm run typecheck && vite build",
     "build:precompiled": "E2EE_PRECOMPILED_WASM=1 npm run build",
-    "ci": "npm run check && npm run build && npm run build:precompiled && npm audit --audit-level=high",
+    "ci": "npm run check:precompiled && npm run build:precompiled && npm run check && npm run build && npm audit --audit-level=high",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {

@@ -28,8 +28,6 @@ jobs:
 
       - run: npm ci
 
-      - run: rustup target add wasm32-unknown-unknown
-
       - name: Secret scan
         run: |
           ! git grep -nE 'rnd_[A-Za-z0-9]+|cpk_[a-f0-9]{32}\.[a-f0-9]{32}\.[A-Za-z0-9]{32}' -- .
@@ -40,14 +38,13 @@ jobs:
 
       - run: cargo test --manifest-path wasm/Cargo.toml
 
-      - run: npm run check
-
-      - name: Verify checked-in WASM is current
-        run: git diff --exit-code -- src/wasm
-
-      - run: npm run build
+      - run: npm run check:precompiled
 
       - run: npm run build:precompiled
+
+      - run: npm run check
+
+      - run: npm run build
 
       - run: npm audit --audit-level=high
 
@@ -85,7 +82,7 @@ jobs:
       - run: npm ci
         if: steps.live.outputs.enabled == 'true'
 
-      - run: npm run wasm
+      - run: npm run wasm:precompiled
         if: steps.live.outputs.enabled == 'true'
 
       - run: npm run test:live
