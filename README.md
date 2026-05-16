@@ -4,7 +4,7 @@ Small browser-native E2EE test client for Chutes. The UI is TypeScript/Vite; the
 
 ![Chutes E2EE browser flow](docs/e2ee-flow.svg)
 
-Requires Node 24 and a stable Rust toolchain with `wasm32-unknown-unknown`.
+Requires Node 24. Source WASM compilation also needs a stable Rust toolchain with `wasm32-unknown-unknown`.
 
 ## Run
 
@@ -17,12 +17,24 @@ npm run dev
 Open the Vite URL, paste a Chutes API key, choose a model, and send a prompt.
 The key is kept in the input only; it is not stored in localStorage/sessionStorage or committed anywhere.
 
+## WASM Mode
+
+By default, `npm run wasm` compiles the Rust crypto source with `wasm-pack`.
+For deploy or browser-only testing, set `E2EE_PRECOMPILED_WASM=1` to use the checked-in artifacts in `src/wasm/` instead:
+
+```bash
+E2EE_PRECOMPILED_WASM=1 npm run build
+```
+
+This flag only controls whether the build re-compiles Rust or ships the precompiled WASM. It is not a browser secrecy boundary; the browser still owns the runtime and can inspect its own inputs and outputs.
+
 ## Check
 
 ```bash
 cargo test --manifest-path wasm/Cargo.toml
 cargo clippy --manifest-path wasm/Cargo.toml --all-targets -- -D warnings
 npm run check
+npm run build:precompiled
 npm run build
 npm audit --audit-level=high
 ```

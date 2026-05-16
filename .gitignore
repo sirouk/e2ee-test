@@ -1,6 +1,5 @@
 node_modules/
 dist/
-src/wasm/
 wasm/pkg/
 wasm/target/
 .DS_Store

@@ -2,7 +2,7 @@ services:
   - type: web
     name: chutes-e2ee-test
     runtime: static
-    buildCommand: npm ci && npm run build
+    buildCommand: npm ci && E2EE_PRECOMPILED_WASM=1 npm run build
     staticPublishPath: ./dist
     autoDeployTrigger: checksPass
     headers:

@@ -42,7 +42,12 @@ jobs:
 
       - run: npm run check
 
+      - name: Verify checked-in WASM is current
+        run: git diff --exit-code -- src/wasm
+
       - run: npm run build
+
+      - run: npm run build:precompiled
 
       - run: npm audit --audit-level=high
 
@@ -55,6 +60,7 @@ jobs:
       CHUTES_TEST_API_KEY: ${{ secrets.CHUTES_TEST_API_KEY }}
       CHUTES_TEST_MODEL: moonshotai/Kimi-K2.6-TEE
       CHUTES_TEST_CHUTE_ID: aac09863-35b4-5d9b-9b67-6e6a9d54273a
+      E2EE_PRECOMPILED_WASM: "1"
 
     steps:
       - id: live
@@ -77,9 +83,6 @@ jobs:
           cache: npm
 
       - run: npm ci
-        if: steps.live.outputs.enabled == 'true'
-
-      - run: rustup target add wasm32-unknown-unknown
         if: steps.live.outputs.enabled == 'true'
 
       - run: npm run wasm
