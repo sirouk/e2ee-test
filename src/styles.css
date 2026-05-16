@@ -187,6 +187,7 @@ button:disabled {
 }
 
 #status {
+  position: relative;
   min-width: 124px;
   padding: 7px 10px;
   border: 1px solid rgba(139, 255, 198, 0.32);
@@ -196,6 +197,37 @@ button:disabled {
   text-align: center;
   font-family: "JetBrains Mono Nerd Font", monospace;
   font-size: 12px;
+}
+
+#status[data-state="error"] {
+  border-color: rgba(255, 171, 150, 0.46);
+  color: #ffab96;
+  background: rgba(255, 171, 150, 0.08);
+}
+
+#status[data-tip]::after {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 10;
+  display: none;
+  width: max-content;
+  max-width: min(420px, calc(100vw - 40px));
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 171, 150, 0.42);
+  border-radius: 8px;
+  background: #151515;
+  color: #f8f8f8;
+  content: attr(data-tip);
+  font-family: "Neue Haas Unica", ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+}
+
+#status[data-tip]:is(:hover, :focus)::after {
+  display: block;
 }
 
 pre {

@@ -9,7 +9,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
         <h1>E2EE Test</h1>
         <p>Confidential inference path.</p>
       </div>
-      <span id="status">loading wasm</span>
+      <span id="status" tabindex="0">loading wasm</span>
     </header>
 
     <label>
@@ -53,7 +53,10 @@ formEl.addEventListener("submit", (event) => event.preventDefault());
 
 initE2EE()
   .then(() => setStatus("wasm ready"))
-  .catch((error) => setStatus(`wasm failed: ${error.message ?? error}`));
+  .catch((error) => {
+    const message = error instanceof Error ? error.message : String(error);
+    setStatus("error", message);
+  });
 
 el<HTMLButtonElement>("loadModels").addEventListener("click", () => run(loadModels));
 el<HTMLButtonElement>("send").addEventListener("click", () => run(send));
@@ -102,7 +105,7 @@ async function run(task: () => Promise<void>) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     outputEl.textContent = message;
-    setStatus("error");
+    setStatus("error", message);
   } finally {
     setBusy(false);
   }
@@ -118,8 +121,16 @@ function selectedModel() {
   return model;
 }
 
-function setStatus(value: string) {
+function setStatus(value: string, detail = "") {
   statusEl.textContent = value;
+  statusEl.dataset.state = value === "error" ? "error" : "ok";
+  if (detail) {
+    statusEl.dataset.tip = detail;
+    statusEl.title = detail;
+  } else {
+    delete statusEl.dataset.tip;
+    statusEl.removeAttribute("title");
+  }
 }
 
 function setBusy(value: boolean) {

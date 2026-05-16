@@ -8,7 +8,7 @@ const csp = [
   "form-action 'none'",
   "font-src 'self'",
   "img-src 'self' data:",
-  "style-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
   "script-src 'self' 'wasm-unsafe-eval'",
   "connect-src 'self' https://api.chutes.ai https://llm.chutes.ai ws: http://localhost:*",
 ].join("; ");
