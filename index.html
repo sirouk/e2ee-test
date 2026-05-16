@@ -8,7 +8,50 @@
     <title>Chutes E2EE Test</title>
   </head>
   <body>
-    <main id="app"></main>
+    <main id="app">
+      <form id="appForm" class="shell">
+        <header>
+          <div>
+            <img class="logo" src="/brand/chutes-flat-light.svg" alt="Chutes" />
+            <h1>E2EE Test</h1>
+            <p>Confidential inference path.</p>
+          </div>
+          <span id="status" tabindex="0">loading wasm</span>
+        </header>
+
+        <label>
+          API key
+          <input
+            id="apiKey"
+            type="password"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            placeholder="cpk_..."
+          />
+        </label>
+
+        <div class="row">
+          <label>
+            Model
+            <select id="model"></select>
+          </label>
+          <button id="loadModels" type="button">Load</button>
+        </div>
+
+        <label>
+          Prompt
+          <textarea id="prompt" rows="5">Say hello from inside the Chutes E2EE path.</textarea>
+        </label>
+
+        <div class="actions">
+          <label class="check"><input id="stream" type="checkbox" checked /> stream</label>
+          <button id="send" type="button">Send E2EE</button>
+        </div>
+
+        <pre id="output"></pre>
+      </form>
+    </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

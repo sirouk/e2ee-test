@@ -1,44 +1,6 @@
 import "./styles.css";
 import { initE2EE, listModels, sendChat, type ChutesModel } from "./e2eeClient.ts";
 
-document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-  <form id="appForm" class="shell">
-    <header>
-      <div>
-        <img class="logo" src="/brand/chutes-flat-light.svg" alt="Chutes" />
-        <h1>E2EE Test</h1>
-        <p>Confidential inference path.</p>
-      </div>
-      <span id="status" tabindex="0">loading wasm</span>
-    </header>
-
-    <label>
-      API key
-      <input id="apiKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="cpk_..." />
-    </label>
-
-    <div class="row">
-      <label>
-        Model
-        <select id="model"></select>
-      </label>
-      <button id="loadModels" type="button">Load</button>
-    </div>
-
-    <label>
-      Prompt
-      <textarea id="prompt" rows="5">Say hello from inside the Chutes E2EE path.</textarea>
-    </label>
-
-    <div class="actions">
-      <label class="check"><input id="stream" type="checkbox" checked /> stream</label>
-      <button id="send" type="button">Send E2EE</button>
-    </div>
-
-    <pre id="output"></pre>
-  </form>
-`;
-
 const formEl = el<HTMLFormElement>("appForm");
 const statusEl = el<HTMLSpanElement>("status");
 const apiKeyEl = el<HTMLInputElement>("apiKey");
@@ -87,7 +49,7 @@ async function send() {
 }
 
 function renderModels(models: ChutesModel[]) {
-  modelEl.innerHTML = "";
+  modelEl.replaceChildren();
   for (const model of models) {
     const option = document.createElement("option");
     option.value = model.id;

@@ -3,14 +3,21 @@ import { defineConfig } from "vite";
 const csp = [
   "default-src 'self'",
   "base-uri 'none'",
-  "object-src 'none'",
-  "frame-ancestors 'none'",
-  "form-action 'none'",
-  "font-src 'self'",
-  "img-src 'self' data:",
-  "style-src 'self' 'unsafe-inline'",
-  "script-src 'self' 'wasm-unsafe-eval'",
+  "child-src 'none'",
   "connect-src 'self' https://api.chutes.ai https://llm.chutes.ai ws: http://localhost:*",
+  "font-src 'self'",
+  "form-action 'none'",
+  "frame-ancestors 'none'",
+  "frame-src 'none'",
+  "img-src 'self' data:",
+  "manifest-src 'none'",
+  "media-src 'none'",
+  "object-src 'none'",
+  "script-src 'self' 'wasm-unsafe-eval'",
+  "script-src-attr 'none'",
+  "style-src 'self' 'unsafe-inline'",
+  "style-src-attr 'none'",
+  "worker-src 'none'",
 ].join("; ");
 
 const securityHeaders = {
