@@ -3,6 +3,7 @@ import initWasm, {
   decrypt_response,
   decrypt_stream_chunk,
   decrypt_stream_init,
+  type InitInput,
 } from "./wasm/chutes_e2ee_wasm.js";
 
 const API_BASE = "https://api.chutes.ai";
@@ -38,8 +39,8 @@ type ChatArgs = {
 
 let wasmReady: Promise<void> | undefined;
 
-export function initE2EE() {
-  wasmReady ||= initWasm().then(() => undefined);
+export function initE2EE(moduleOrPath?: InitInput | Promise<InitInput>) {
+  wasmReady ||= initWasm(moduleOrPath).then(() => undefined);
   return wasmReady;
 }
 

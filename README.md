@@ -2,6 +2,8 @@
 
 Small browser-native E2EE test client for Chutes. The UI is TypeScript/Vite; the protocol crypto lives in Rust/WASM.
 
+Requires Node 24 and a stable Rust toolchain with `wasm32-unknown-unknown`.
+
 ## Run
 
 ```bash
@@ -22,6 +24,8 @@ npm run check
 npm run build
 npm audit --audit-level=high
 ```
+
+CI runs the same deterministic checks on every push and pull request. A live Chutes smoke test runs on pushes and manual workflow runs when the `CHUTES_TEST_API_KEY` GitHub secret is configured. Use a scoped, low-quota key for that secret.
 
 This app needs Chutes CORS to allow `https://chutes-e2ee-test.onrender.com` on:
 

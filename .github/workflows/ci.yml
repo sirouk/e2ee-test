@@ -4,9 +4,14 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -18,12 +23,16 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: npm
 
       - run: npm ci
 
       - run: rustup target add wasm32-unknown-unknown
+
+      - name: Secret scan
+        run: |
+          ! git grep -nE 'rnd_[A-Za-z0-9]+|cpk_[a-f0-9]{32}\.[a-f0-9]{32}\.[A-Za-z0-9]{32}' -- .
 
       - run: cargo fmt --manifest-path wasm/Cargo.toml --check
 
@@ -36,3 +45,45 @@ jobs:
       - run: npm run build
 
       - run: npm audit --audit-level=high
+
+  live-smoke:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name != 'pull_request'
+    timeout-minutes: 10
+    env:
+      CHUTES_TEST_API_KEY: ${{ secrets.CHUTES_TEST_API_KEY }}
+      CHUTES_TEST_MODEL: moonshotai/Kimi-K2.6-TEE
+      CHUTES_TEST_CHUTE_ID: aac09863-35b4-5d9b-9b67-6e6a9d54273a
+
+    steps:
+      - id: live
+        name: Check live smoke secret
+        run: |
+          if [ -n "$CHUTES_TEST_API_KEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "CHUTES_TEST_API_KEY is not configured; skipping live smoke."
+          fi
+
+      - uses: actions/checkout@v6
+        if: steps.live.outputs.enabled == 'true'
+
+      - uses: actions/setup-node@v6
+        if: steps.live.outputs.enabled == 'true'
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - run: npm ci
+        if: steps.live.outputs.enabled == 'true'
+
+      - run: rustup target add wasm32-unknown-unknown
+        if: steps.live.outputs.enabled == 'true'
+
+      - run: npm run wasm
+        if: steps.live.outputs.enabled == 'true'
+
+      - run: npm run test:live
+        if: steps.live.outputs.enabled == 'true'
