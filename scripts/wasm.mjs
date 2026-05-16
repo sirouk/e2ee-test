@@ -20,7 +20,16 @@ if (precompiled) {
 } else {
   const result = spawnSync(
     "wasm-pack",
-    ["build", "wasm", "--target", "web", "--out-dir", "../src/wasm", "--no-pack"],
+    [
+      "build",
+      "wasm",
+      "--target",
+      "web",
+      "--out-dir",
+      "../src/wasm",
+      "--no-pack",
+      "--no-opt",
+    ],
     { stdio: "inherit" },
   );
   if (result.status !== 0) {
