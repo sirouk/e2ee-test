@@ -4,6 +4,8 @@ Small browser-native E2EE test client for Chutes. The UI is TypeScript/Vite; the
 
 ![Chutes E2EE browser flow](docs/e2ee-flow.svg)
 
+See [SECURITY.md](SECURITY.md) for the browser trust model, deployment checks, and hardening notes.
+
 Requires Node 24. Source WASM compilation also needs a stable Rust toolchain with `wasm32-unknown-unknown`.
 
 ## Run
@@ -33,7 +35,9 @@ npm run wasm:precompiled
 npm run build:precompiled
 ```
 
-CI tests precompiled mode from a clean checkout before rebuilding from Rust source. The Rust toolchain is pinned in `rust-toolchain.toml`; source builds can still produce different WASM bytes across host triples, so deployment uses the committed precompiled artifact. This flag only controls whether the build re-compiles Rust or ships the precompiled WASM. It is not a browser secrecy boundary; the browser still owns the runtime and can inspect its own inputs and outputs.
+CI tests precompiled mode from a clean checkout before rebuilding from Rust source. The Rust toolchain is pinned in `rust-toolchain.toml`; source builds can still produce different WASM bytes across host triples, so deployment uses the committed precompiled artifact.
+
+This flag only controls whether the build re-compiles Rust or ships the checked-in WASM. It is not a browser secrecy boundary: DevTools can download and disassemble WASM, and the browser still owns the runtime, plaintext inputs, API key, and decrypted outputs.
 
 ## Check
 
