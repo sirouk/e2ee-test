@@ -19,7 +19,28 @@ npm run dev
 Open the Vite URL, paste a Chutes API key, choose a model, and send a prompt.
 The key is kept in the input only; it is not stored in localStorage/sessionStorage or committed anywhere.
 
-The model choice drives E2EE discovery. The app warms only the selected model's `chute_id`, keeps the returned instance public key and one-time nonces in memory, consumes each nonce once, and refreshes them according to Chutes' discovery TTL. If the API key or selected model changes, the next request uses that key/model pair's own discovery path.
+## Performance
+
+The app only uses speedups that preserve the E2EE protocol boundary:
+
+- `index.html` preconnects to `https://api.chutes.ai` and `https://llm.chutes.ai`, with `dns-prefetch` fallback, so cold DNS/TCP/TLS setup can start before the first API call.
+- WASM initializes on page load, before the user sends a prompt.
+- Model selection drives E2EE discovery. The app warms only the selected model's `chute_id`.
+- Warmed instance public keys and one-time nonces stay in memory, are scoped to `SHA-256(apiKey) + chute_id`, and expire according to Chutes' discovery TTL.
+- Each nonce is consumed once. After a successful invoke, the app quietly warms the next nonce for that same key/model pair.
+- Streaming responses are decrypted incrementally: each complete encrypted SSE line is authenticated and decrypted as soon as it arrives, then appended to the UI.
+
+## Security And E2EE
+
+This is a browser client, so the browser is trusted for its own plaintext. Within that boundary, the app keeps the E2EE flow strict:
+
+- API keys are never written to `localStorage`, `sessionStorage`, cookies, URLs, or logs.
+- Fetches use `credentials: "omit"`.
+- Prompt encryption happens only after Send. The app does not pre-encrypt prompts or cache plaintext request bodies.
+- Every request gets a fresh response keypair from WASM. Response keys and encrypted request buffers are zeroed after use where JavaScript/WASM exposes writable buffers.
+- Nonces are model-specific, key-specific, one-time values. If Chutes rejects a nonce, the app drops the warmed data for that key/model pair and retries once with fresh discovery.
+- Precompiled WASM is a portability and deployment choice, not a secrecy boundary. DevTools can inspect WASM, and plaintext necessarily exists in browser memory while being entered or displayed.
+- Production uses a restrictive CSP, Trusted Types, `no-referrer`, `nosniff`, frame denial, and a narrow permissions policy. See [SECURITY.md](SECURITY.md).
 
 ## WASM Mode
 
