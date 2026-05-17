@@ -140,6 +140,7 @@ export async function sendChat(args: ChatArgs): Promise<string> {
     try {
       const instance = await getInstance(apiKey, chuteId, args.onStatus, cacheKey);
       args.onStatus?.("encrypting");
+      await paintStatus();
       const encrypted = build_e2ee_request(instance.e2e_pubkey, payloadJson) as E2EEBuildResult;
       blob = bytes(encrypted.blob);
       responseSk = bytes(encrypted.response_sk);
@@ -181,6 +182,7 @@ export async function sendChat(args: ChatArgs): Promise<string> {
       args.onStatus?.("reading response");
       const responseBlob = new Uint8Array(await res.arrayBuffer());
       args.onStatus?.("decrypting response");
+      await paintStatus();
       const decrypted = decrypt_response(responseBlob, responseSk);
       return extractChatContent(JSON.parse(decrypted));
     } finally {
@@ -437,6 +439,11 @@ async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: numbe
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function paintStatus() {
+  if (typeof requestAnimationFrame !== "function") return Promise.resolve();
+  return new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 }
 
 async function responseError(name: string, res: Response) {
