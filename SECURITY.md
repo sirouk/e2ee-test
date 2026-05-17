@@ -19,6 +19,8 @@ browser plaintext -> browser encrypts -> Chutes E2EE API -> TEE inference -> enc
 - The Chutes API key lives only in the password input value.
 - The app does not write keys to `localStorage`, `sessionStorage`, cookies, URLs, or logs.
 - Fetches use `credentials: "omit"`.
+- Warmed E2EE instance data is memory-only, keyed by a SHA-256 hash of the current API key plus the selected model's `chute_id`, expires on Chutes' nonce TTL, and is cleared when the API key changes.
+- Warmed nonces are consumed once. If Chutes rejects a nonce, the app drops the warmed data for that key/model pair and retries once with fresh discovery.
 - Request blobs, response secret keys, and derived stream keys are zeroed after use where JavaScript/WASM gives us direct buffers.
 
 ## Deployment

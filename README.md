@@ -19,6 +19,8 @@ npm run dev
 Open the Vite URL, paste a Chutes API key, choose a model, and send a prompt.
 The key is kept in the input only; it is not stored in localStorage/sessionStorage or committed anywhere.
 
+The model choice drives E2EE discovery. The app warms only the selected model's `chute_id`, keeps the returned instance public key and one-time nonces in memory, consumes each nonce once, and refreshes them according to Chutes' discovery TTL. If the API key or selected model changes, the next request uses that key/model pair's own discovery path.
+
 ## WASM Mode
 
 By default, `npm run wasm` compiles the Rust crypto source with `wasm-pack`.
